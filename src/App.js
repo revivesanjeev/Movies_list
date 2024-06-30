@@ -10,10 +10,7 @@ function App() {
   const [retry, setRetry] = useState(false);
   const [retryTimer, setRetryTimer] = useState(null);
 
-
-    
-
-
+ 
   const fetchMoviesHandler = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -42,10 +39,11 @@ function App() {
     }
   }, []);
 
+ 
   useEffect(() => {
     fetchMoviesHandler(); // Fetch movies when the component mounts it willl call only once independent of dependencies
-  }, []);
-
+  }, [fetchMoviesHandler]);
+  
   useEffect(() => {
     if (retry) {
       const timer = setTimeout(() => {
