@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import MoviesList from "./components/MoviesList";
 import "./App.css";
 
+
 function App() {
   const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -9,34 +10,40 @@ function App() {
   const [retry, setRetry] = useState(false);
   const [retryTimer, setRetryTimer] = useState(null);
 
+
+    
+
+
   const fetchMoviesHandler = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch("https://swapi.dev/api/flms/");
+      const response = await fetch("https://swapi.dev/api/films/");
       if (!response.ok) {
         throw new Error("Something went wrong! Retrying...");
       }
 
       const data = await response.json();
 
-      const transformedMovies = data.results.map((movieData) => {
-        return {
-          id: movieData.episode_id,
-          title: movieData.title,
-          openingText: movieData.opening_crawl,
-          releaseDate: movieData.release_date,
-        };
-      });
+      const transformedMovies = data.results.map((movieData) => ({
+        id: movieData.episode_id,
+        title: movieData.title,
+        openingText: movieData.opening_crawl,
+        releaseDate: movieData.release_date,
+      }));
       setMovies(transformedMovies);
-      setRetry(false);
+      setRetry(false); 
+      setIsLoading(false); 
     } catch (error) {
       setError(error.message);
       setRetry(true); 
+      setIsLoading(true); 
     }
+  }, []);
 
-    setIsLoading(false);
+  useEffect(() => {
+    fetchMoviesHandler(); // Fetch movies when the component mounts it willl call only once independent of dependencies
   }, []);
 
   useEffect(() => {
@@ -46,12 +53,19 @@ function App() {
       }, 5000); 
       setRetryTimer(timer);
     }
-    return () => clearTimeout(retryTimer);
+    return () => {
+      if (retryTimer) {
+        clearTimeout(retryTimer); 
+      }
+    };
   }, [retry, fetchMoviesHandler, retryTimer]);
 
   const cancelRetryHandler = () => {
     setRetry(false);
-    clearTimeout(retryTimer); 
+    setIsLoading(false); 
+    if (retryTimer) {
+      clearTimeout(retryTimer); 
+    }
   };
 
   let content = <p>Found no Movies</p>;
@@ -63,8 +77,7 @@ function App() {
     content = (
       <div>
         <p>
-          {error.split("Retrying")[0]}
-          <strong>Retrying...</strong>
+          {error} <strong>Retrying...</strong>
         </p>
         <button onClick={cancelRetryHandler}>Cancel</button>
       </div>
@@ -72,7 +85,12 @@ function App() {
   }
 
   if (isLoading) {
-    content = <div className="loader"></div>;
+    content = (
+      <div>
+        <div className="loader"></div>
+        <button onClick={cancelRetryHandler}>Cancel</button>
+      </div>
+    ); 
   }
 
   return (
