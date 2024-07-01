@@ -27,7 +27,7 @@ section {
 button {
   font: inherit;
   cursor: pointer;
-  background: #230052;
+  background: #36065e;
   border: 1px solid #230052;
   color: white;
   padding: 0.75rem 2rem;
@@ -41,5 +41,5 @@ button:focus {
 button:hover,
 button:active {
   background-color: #460897;
-  border-color: #460897;
+  border-color: #21014b;
 }

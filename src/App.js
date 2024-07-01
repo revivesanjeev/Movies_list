@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import MoviesList from "./components/MoviesList";
 import "./App.css";
+import AddMovieForm from "./components/AddMovieForm";
 
 
 function App() {
@@ -9,8 +10,10 @@ function App() {
   const [error, setError] = useState(null);
   const [retry, setRetry] = useState(false);
   const [retryTimer, setRetryTimer] = useState(null);
-
  
+ const addMovieHandler=(movie)=>{
+  setMovies((prevMovies)=>[...prevMovies,movie]);
+ };
   const fetchMoviesHandler = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -41,9 +44,9 @@ function App() {
 
  
   useEffect(() => {
-    fetchMoviesHandler(); // Fetch movies when the component mounts it willl call only once independent of dependencies
+    fetchMoviesHandler(); 
   }, [fetchMoviesHandler]);
-  
+
   useEffect(() => {
     if (retry) {
       const timer = setTimeout(() => {
@@ -93,6 +96,9 @@ function App() {
 
   return (
     <React.Fragment>
+      <section>
+        <AddMovieForm onAddMovie={addMovieHandler} />
+      </section>
       <section>
         <button onClick={fetchMoviesHandler} disabled={isLoading || retry}>
           Fetch Movies
