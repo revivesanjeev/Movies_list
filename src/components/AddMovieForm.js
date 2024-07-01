@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./AddMovieForm.css";
 
-const AddMovieForm = () => {
+const AddMovieForm = (props) => {
   const [isFormVisible, setFormVisible] = useState(false);
   const [title, setTitle] = useState("");
   const [openingText, setOpeningText] = useState("");
@@ -11,7 +11,15 @@ const AddMovieForm = () => {
     if (isFormVisible) {
      
       event.preventDefault();
-     
+      const movie = {
+        title: title,
+        openingText: openingText,
+        releaseDate: releaseDate,
+      };
+         props.onAddMovie(movie);
+
+
+
       console.log(title, openingText, releaseDate);
 
       setTitle("");
@@ -48,6 +56,7 @@ const AddMovieForm = () => {
           value={releaseDate}
           onChange={(e) => setReleaseDate(e.target.value)}
         />
+        
       </div>
       <button className="add-movie-button" onClick={handleButtonClick}>
         {isFormVisible ? "Submit Movie" : "Add Movie"}

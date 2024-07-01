@@ -10,68 +10,108 @@ function App() {
   const [error, setError] = useState(null);
   const [retry, setRetry] = useState(false);
   const [retryTimer, setRetryTimer] = useState(null);
- 
- const addMovieHandler=(movie)=>{
-  setMovies((prevMovies)=>[...prevMovies,movie]);
- };
+
   const fetchMoviesHandler = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch("https://swapi.dev/api/films/");
+      const response = await fetch(
+        "https://movieslistnew-745ad-default-rtdb.firebaseio.com/movies.json"
+      );
       if (!response.ok) {
         throw new Error("Something went wrong! Retrying...");
       }
 
       const data = await response.json();
 
-      const transformedMovies = data.results.map((movieData) => ({
-        id: movieData.episode_id,
-        title: movieData.title,
-        openingText: movieData.opening_crawl,
-        releaseDate: movieData.release_date,
-      }));
+       const transformedMovies = [];
+       for (const key in data) {
+         transformedMovies.push({
+           id: key,
+           title: data[key].title,
+           openingText: data[key].openingText,
+           releaseDate: data[key].releaseDate,
+         });
+       }
       setMovies(transformedMovies);
-      setRetry(false); 
-      setIsLoading(false); 
+      setRetry(false);
+      setIsLoading(false);
     } catch (error) {
       setError(error.message);
-      setRetry(true); 
-      setIsLoading(true); 
+      setRetry(true);
+      setIsLoading(true);
     }
   }, []);
 
- 
+   async function moviesDeleteHandler(movieId) {
+     try {
+       const response = await fetch(
+         `https://movieslistnew-745ad-default-rtdb.firebaseio.com/movies/${movieId}.json`,
+         {
+           method: "DELETE",
+         }
+       );
+       if (!response.ok) {
+         throw new Error("Failed to delete the movie.");
+       }
+       setMovies((prevMovies) =>
+         prevMovies.filter((movie) => movie.id !== movieId)
+       );
+     } catch (error) {
+       setError(error.message);
+     }
+   }
+
+
+
+  async function addMovieHandler(movie) {
+   const response=await  fetch(
+      "https://movieslistnew-745ad-default-rtdb.firebaseio.com/movies.json",
+      {
+        method: 'POST',
+        body: JSON.stringify(movie),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const data = await response.json();
+    console.log(data);
+    fetchMoviesHandler();
+  }
+
   useEffect(() => {
-    fetchMoviesHandler(); 
+    fetchMoviesHandler();
   }, [fetchMoviesHandler]);
 
   useEffect(() => {
     if (retry) {
       const timer = setTimeout(() => {
         fetchMoviesHandler();
-      }, 5000); 
+      }, 5000);
       setRetryTimer(timer);
     }
     return () => {
       if (retryTimer) {
-        clearTimeout(retryTimer); 
+        clearTimeout(retryTimer);
       }
     };
   }, [retry, fetchMoviesHandler, retryTimer]);
 
   const cancelRetryHandler = () => {
     setRetry(false);
-    setIsLoading(false); 
+    setIsLoading(false);
     if (retryTimer) {
-      clearTimeout(retryTimer); 
+      clearTimeout(retryTimer);
     }
   };
 
   let content = <p>Found no Movies</p>;
   if (movies.length > 0) {
-    content = <MoviesList movies={movies} />;
+    content = (
+      <MoviesList movies={movies} onDeleteMovie={moviesDeleteHandler} />
+    );
   }
 
   if (error) {
@@ -91,7 +131,7 @@ function App() {
         <div className="loader"></div>
         <button onClick={cancelRetryHandler}>Cancel</button>
       </div>
-    ); 
+    );
   }
 
   return (
